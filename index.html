@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:ng="http://angularjs.org" id="ng-app" ng-app="myApp">
+
+<head>
+    <meta charset="UTF-8">
+    <title>东郊宾馆古树名木查询</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8;">
+    <meta name="renderer" content="webkit" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="format-detection" content="telephone=no,email=no">
+    <meta name=”keywords” content="上海东郊宾馆、古树名木">
+
+    <link rel="stylesheet" href="m-css/public.css">
+    <link rel="stylesheet" href="m-css/index.css">
+    <script src="m-js/public.js"></script>
+
+    <script src="m-js/vue.min.js"></script>
+    <script src="m-js/axios.min.js"></script>
+    <script src="m-js/vue-resource.min.js"></script>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div class="index_body" id="app">
+        <!--图片滚动切换 begin -->
+        <div class="in_img1">
+            <img v-for="(img,index) in imgs" :src="img" v-show="num==index" />
+        </div>
+        <!-- 图片滚动切换- end -->
+
+        <div class="con">
+            <div class="logo"></div>
+            <div class="keshu">
+                <div class="keshu_1">
+                    现有古树名木
+                </div>
+                <div class="keshu_2">
+                    共计<span>98</span>棵
+                </div>
+            </div>
+            <div class="text"></div>
+            <a class="btn_more" href="treelist.html"></a>
+        </div>
+        <div class="footer"></div>
+    </div>
+
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                info: [],
+                info_search: [],
+                num: 0,
+                imgs: [
+                    'm-img/in-img1.jpg',
+                    'm-img/in-img1.jpg'
+                ],
+                message: '',
+                apiUrl: 'http://djhotel.sh-service.cn'
+            },
+            methods: {
+                getdata() {
+                    // axios({
+                    //     methods: 'get',
+                    //     url: 'http://djhotel.sh-service.cn//tools/oldtree_ajax.ashx?action=get_tree_count'
+                    // }).then(function(resp) {
+                    //     console.log(resp.treeCount);
+                    // }).catch(resp => {
+                    //     console.log('请求失败：' + resp.status + ',' + resp.msg);
+                    // });
+                    // this.$http.jsonp(this.apiUrl + '/tools/oldtree_ajax.ashx', {
+                    //     params: {
+                    //         action: 'get_tree_count'
+                    //     }
+                    // }).then(function(resp) {
+                    //     console.log(resp);
+                    // }).catch(resp => {
+                    //     console.log('请求失败：' + resp.status);
+                    // });
+                    this.$http.jsonp('https://sug.so.360.cn/suggest', {
+                        params: {
+                            word: 'a'
+                        }
+                    }).then(function(resp) {
+                        console.log(resp.data)
+                    })
+                },
+                getimg() {
+                    // axios('http://djhotel.sh-service.cn//tools/oldtree_ajax.ashx?action=get_pic&number=230')
+                    //     .then(response => response.json())
+                    //     .then(json => {
+                    //         this.imgs = json;
+                    //     })
+                    this.$http.post(this.apiUrl + '/tools/oldtree_ajax.ashx', {
+                        params: {
+                            action: 'get_pic',
+                            number: '230'
+                        }
+                    }).then(function(resp) {
+                        console.log(resp);
+                    }).catch(resp => {
+                        console.log('请求失败：' + resp.status);
+                    });
+                },
+                autoPlay: function() { //num递增，num等于图片总数时回到第一张，其递增有下面的定时器实现
+                    const _self = this;
+                    _self.num++;
+                    if (_self.num == this.imgs.length) {
+                        _self.num = 0;
+                    }
+                },
+                play: function() { //每隔一秒执行autoPlay，使得num递增
+                    setInterval(this.autoPlay, 3000);
+                }
+            },
+            mounted() {
+                this.getdata();
+                this.getimg();
+                this.play();
+            }
+        })
+    </script>
+</body>
+
+</html>
