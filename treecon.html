@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:ng="http://angularjs.org" id="ng-app" ng-app="myApp">
+
 <head>
     <meta charset="UTF-8">
     <title>东郊宾馆古树名木查询</title>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8;">
-    <meta name="renderer" content="webkit"/>
+    <meta name="renderer" content="webkit" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
     <meta name="format-detection" content="telephone=no,email=no">
     <meta name=”keywords” content="上海东郊宾馆、古树名木">
@@ -12,101 +13,126 @@
     <link rel="stylesheet" href="m-css/public.css">
     <link rel="stylesheet" href="m-css/index.css">
     <script src="m-js/public.js"></script>
-    
-    <script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
-    <script src="https://cdn.staticfile.org/axios/0.18.0/axios.min.js"></script>
+
+    <script src="m-js/vue.min.js"></script>
+    <script src="m-js/axios.min.js"></script>
+    <script src="m-js/vue-resource.min.js"></script>
 </head>
 
 <body>
     <div class="index_con" id="app">
         <!--图片滚动切换 begin -->
-    	 <div class="in_img1">
-            <img v-for="(img,index) in imgs" :src="img" v-show="num==index"/>
-         </div>
+        <!-- <div class="in_img1">
+            <transition name='fade'>
+                <img v-for="(img,index) in imgs" :key="index" :src="img" v-if="num==index" />
+            </transition>
+        </div> -->
         <!-- 图片滚动切换- end -->
-    	
-        <div class="con">  
+
+        <div class="con">
             <div class="treeimg1">
                 <div class="logo1"></div>
-                <img src="m-img/treeimg1.jpg">
-                <div class="name">{{info.title}}</div>
+                <transition name='fade'>
+                    <img v-for="(img,index) in imgs" :key="index" :src="img" v-if="num==index" />
+                </transition>
+                <div class="name">{{info.name | filter}}</div>
             </div>
-            
+
             <div class="treejj_con">
-            	<ul class="kslist">
-                	<li>
-                    	古树科属：<i>{{info.ks}}</i>
+                <ul class="kslist">
+                    <li>
+                        古树科属：<i>{{info.subjects}}</i>
                     </li>
                     <li>
-                    	古树树高：<i>{{info.tall}}</i>
+                        古树树高：<i>{{info.treeheight}}(M)</i>
                     </li>
                     <li>
-                    	古树年龄：<i>{{info.age}}</i>
+                        古树年龄：<i>{{info.treeage}}</i>
                     </li>
                     <li>
-                    	古树冠径：<i>{{info.weight}}</i>
+                        古树蓬径: <i>{{info.weight}}(CM)</i>
                     </li>
                     <li>
-                    	古树产地：<i>{{info.born}}</i>
+                        古树蓬径: <i>{{info.treebust}}(CM)</i>
                     </li>
-                	<div class="clearfix"></div>
+                    <li>
+                        古树产地：<i>{{info.address}}</i>
+                    </li>
+                    <div class="clearfix"></div>
                 </ul>
-                
+
                 <div class="conjj">
-                	<div class="title"></div>
-                
-                    {{info.content}}
-                
+                    <div class="title"></div>
+
+                    {{info.introduced}}
+
                 </div>
- 
-            </div>  
-            
+
+            </div>
+
             <div class="clearfix"></div>
         </div>
-        
-       
+
+
     </div>
-    
+
     <script>
+        Vue.filter('filter', val => {
+            let reg = RegExp('<br/>', 'g')
+            return val.replace(reg, ' ');
+        });
         new Vue({
-            el:'#app',
-            data:{
-                info:[],
-                num:0,
-                imgs:[],
+            el: '#app',
+            data: {
+                info: [],
+                num: 0,
+                imgs: [],
+                id: null,
+                apiUrl: 'http://djhotel.sh-service.cn'
             },
-            methods:{
+            created() {
+                // console.log(window.location.href);
+                let params = window.location.search;
+                if (params == null || params.length <= 1) return
+
+
+                var reg = new RegExp("(^|&)id=([^&]*)(&|$)");
+                this.id = params.substr(1).match(reg)[2]
+                    // console.log(r);
+
+            },
+            methods: {
                 getdata() {
-                    fetch('/Test/json1')
-                        .then(response => response.json())
-                        .then(json => {
-                            this.info = json.data;
-                        })
+                    this.$http.get(this.apiUrl + '/tools/oldtree_ajax.ashx', {
+                        params: {
+                            action: 'get_oldtree',
+                            number: this.id
+                        }
+                    }).then(response => response.json()).then(function(resp) {
+                        // console.log(resp.result);
+                        this.info = resp.result;
+                        this.imgs = resp.result.imgurl;
+                    }).catch(resp => {
+                        console.log('请求失败：' + resp.status);
+                    });
                 },
-                getimg() {
-                    fetch('/Test/json1')
-                        .then(response => response.json())
-                        .then(json => {
-                            this.imgs = json;
-                        })
-                },
-                autoPlay:function(){//num递增，num等于图片总数时回到第一张，其递增有下面的定时器实现
-                    const _self=this;
+                autoPlay: function() { //num递增，num等于图片总数时回到第一张，其递增有下面的定时器实现
+                    const _self = this;
                     _self.num++;
-                    if(_self.num == this.imgs.length){
-                        _self.num=0;
+                    if (_self.num == this.imgs.length) {
+                        _self.num = 0;
                     }
                 },
-                play:function(){//每隔一秒执行autoPlay，使得num递增
-                    setInterval(this.autoPlay,3000);
+                play: function() { //每隔一秒执行autoPlay，使得num递增
+                    setInterval(this.autoPlay, 5000);
                 }
             },
-            mounted(){
+            mounted() {
                 this.getdata();
-                this.getimg();
                 this.play();
             }
         })
     </script>
 </body>
+
 </html>

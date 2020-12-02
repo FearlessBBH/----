@@ -26,7 +26,9 @@
     <div class="index_body" id="app">
         <!--图片滚动切换 begin -->
         <div class="in_img1">
-            <img v-for="(img,index) in imgs" :src="img" v-show="num==index" />
+            <transition name='fade'>
+                <img v-for="(img,index) in imgs" :key="index" :src="img" v-if="num==index" />
+            </transition>
         </div>
         <!-- 图片滚动切换- end -->
 
@@ -37,7 +39,7 @@
                     现有古树名木
                 </div>
                 <div class="keshu_2">
-                    共计<span>98</span>棵
+                    共计<span>{{tree_count}}</span>棵
                 </div>
             </div>
             <div class="text"></div>
@@ -54,53 +56,35 @@
                 info: [],
                 info_search: [],
                 num: 0,
-                imgs: [
-                    'm-img/in-img1.jpg',
-                    'm-img/in-img1.jpg'
-                ],
+                imgs: [],
                 message: '',
+                tree_count: 0,
                 apiUrl: 'http://djhotel.sh-service.cn'
             },
             methods: {
                 getdata() {
-                    // axios({
-                    //     methods: 'get',
-                    //     url: 'http://djhotel.sh-service.cn//tools/oldtree_ajax.ashx?action=get_tree_count'
-                    // }).then(function(resp) {
-                    //     console.log(resp.treeCount);
-                    // }).catch(resp => {
-                    //     console.log('请求失败：' + resp.status + ',' + resp.msg);
-                    // });
-                    // this.$http.jsonp(this.apiUrl + '/tools/oldtree_ajax.ashx', {
-                    //     params: {
-                    //         action: 'get_tree_count'
-                    //     }
-                    // }).then(function(resp) {
-                    //     console.log(resp);
-                    // }).catch(resp => {
-                    //     console.log('请求失败：' + resp.status);
-                    // });
-                    this.$http.jsonp('https://sug.so.360.cn/suggest', {
+                    this.$http.get(this.apiUrl + '/tools/oldtree_ajax.ashx', {
                         params: {
-                            word: 'a'
+                            action: 'get_tree_count'
                         }
-                    }).then(function(resp) {
-                        console.log(resp.data)
-                    })
+                    }).then(response => response.json()).then(function(resp) {
+                        // console.log(resp.body.treeCount);
+                        this.tree_count = resp.treeCount
+                    }).catch(resp => {
+                        console.log('请求失败：' + resp.status);
+                    });
                 },
                 getimg() {
-                    // axios('http://djhotel.sh-service.cn//tools/oldtree_ajax.ashx?action=get_pic&number=230')
-                    //     .then(response => response.json())
-                    //     .then(json => {
-                    //         this.imgs = json;
-                    //     })
-                    this.$http.post(this.apiUrl + '/tools/oldtree_ajax.ashx', {
+                    this.$http.get(this.apiUrl + '/tools/oldtree_ajax.ashx', {
                         params: {
                             action: 'get_pic',
                             number: '230'
                         }
-                    }).then(function(resp) {
-                        console.log(resp);
+                    }).then(response => response.json()).then(function(resp) {
+                        let obj = resp.result;
+                        obj.forEach(item => {
+                            this.imgs.push(this.apiUrl + item.img_url)
+                        });
                     }).catch(resp => {
                         console.log('请求失败：' + resp.status);
                     });
@@ -113,7 +97,7 @@
                     }
                 },
                 play: function() { //每隔一秒执行autoPlay，使得num递增
-                    setInterval(this.autoPlay, 3000);
+                    setInterval(this.autoPlay, 5000);
                 }
             },
             mounted() {

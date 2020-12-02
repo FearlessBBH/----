@@ -1,10 +1,11 @@
 ﻿<!DOCTYPE html>
 <html xmlns:ng="http://angularjs.org" id="ng-app" ng-app="myApp">
+
 <head>
     <meta charset="UTF-8">
     <title>东郊宾馆古树名木查询</title>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8;">
-    <meta name="renderer" content="webkit"/>
+    <meta name="renderer" content="webkit" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
     <meta name="format-detection" content="telephone=no,email=no">
     <meta name=”keywords” content="上海东郊宾馆、古树名木">
@@ -13,61 +14,69 @@
     <link rel="stylesheet" href="m-css/index.css">
     <script src="m-js/public.js"></script>
 
-    <script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
-    <script src="https://cdn.staticfile.org/axios/0.18.0/axios.min.js"></script>
+    <script src="m-js/vue.min.js"></script>
+    <script src="m-js/axios.min.js"></script>
+    <script src="m-js/vue-resource.min.js"></script>
 </head>
 
 <body>
     <div class="index_list" id="app">
         <!--图片滚动切换 begin -->
-    	 <div class="in_img1">
-            <img v-for="(img,index) in imgs" :src="img" v-show="num==index"/>
-         </div>
+        <div class="in_img1" style="height:5.7rem">
+            <transition name='fade'>
+                <img v-for="(img,index) in imgs" :key="index" :src="img" v-if="num==index" />
+            </transition>
+        </div>
         <!-- 图片滚动切换- end -->
-    	
+
         <div class="djyq">
-        	<div class="logo"></div> 
-        	<div class="yljj">
-            上海东郊宾馆园林介绍来自上海江苏、浙江、安徽江西、湖南、陕西各省市各类乔木2.1万株(主要品种有香植、广玉、二雪松、银杏、梓树、桂花导)，灌22万株:三約子2万楼(10个品神) .全国植物品种现有300余种:古树名木共计98棵，根据植物分类82种。
-            </div>  
+            <div class="logo"></div>
+            <div class="yljj">
+                上海东郊宾馆园林介绍来自上海江苏、浙江、安徽江西、湖南、陕西各省市各类乔木2.1万株(主要品种有香植、广玉、二雪松、银杏、梓树、桂花导)，灌22万株:三約子2万楼(10个品神) .全国植物品种现有300余种:古树名木共计98棵，根据植物分类82种。
+            </div>
             <div class="clearfix"></div>
         </div>
-        
-        <div class="tsgm">  
-        	<div class="title_tsgm"></div> 
-        	<ul>
+
+        <div class="tsgm">
+            <div class="title_tsgm"></div>
+            <ul>
                 <li v-for="(item, index) in info" :class="{'sright':index%2 != 0}">
                     <div :class="[{'nianlun':index%2 != 1},{'nianlun_r':index%2 != 0}]"></div>
                     <div :class="[{'treeimg1':index%2 != 1},{'treeimg1_r':index%2 != 0}]">
                         <div :class="[{'logo1':index%2 != 1},{'logo1_r':index%2 != 0}]"></div>
-                        <a href="treecon?id={{item.id}}"><img src="{{item.picture}}"></a>
-                        <div :class="[{'name':index%2 != 1},{'name_r':index%2 != 0}]">{{item.title}}</div>
+                        <!-- <a href="treecon?id=item.number"> -->
+                        <img :src="item.imgarray[0]" style='height: 4.85rem;' @click='toContent(item.number)'>
+                        <!-- </a> -->
+                        <div :class="[{'name':index%2 != 1},{'name_r':index%2 != 0}]">{{item.name | filter}}</div>
                     </div>
 
                     <div :class="[{'treejj':index%2 != 1},{'treejj_r':index%2 != 0}]">
-                        {{item.content}}
+                        {{item.situation_simple}}
                     </div>
-                    <a href="treecon.html"> <div :class="[{'btn_xq':index%2 != 1},{'btn_xq_r':index%2 != 0}]"></div></a>
+                    <!-- <a href="treecon.html"> -->
+                    <div :class="[{'btn_xq':index%2 != 1},{'btn_xq_r':index%2 != 0}]" @click='toContent(item.number)'></div>
+                    <!-- </a> -->
                     <div class="clearfix"></div>
                 </li>
             </ul>
         </div>
-        
+
         <div class="sousuo">
-            <input type="text" v-model="message" class="search_ input" placeholder="请输古树名木关键字" name="" id="" value="" />
+            <input type="text" v-model="message" class="search_ input" placeholder="请输古树名木关键字" value="" />
             <div @click="search_get" class="btn_sousuo"></div>
         </div>
 
-        <div class="gmms">  
-        	<div class="title_gmms"></div> 
-        	<ul>
-
-            	<li v-for="index in info_search">
-                	<a href="treecon?id={{index.id}}"><img src="{{index.picture}}"></a>
-                    <i>{{index.year}}</i>
-                    <h2>{{index.title}}</h2>
-                    <div class="ks">科属：<span>{{index.ks}}</span></div>
-                    <p>{{index.content}}</p>
+        <div class="gmms">
+            <div class="title_gmms"></div>
+            <ul>
+                <li v-for="item in info_search">
+                    <!-- <a :href="'treecon?id='+item.id"> -->
+                    <img :src="item.imgarray[0]" @click='toContent(item.number)'>
+                    <!-- </a> -->
+                    <i>{{item.treeage}}岁</i>
+                    <h2>{{item.name}}</h2>
+                    <div class="ks">古树科属：<span>{{item.subjects}}</span></div>
+                    <p>{{item.situation_simple}}</p>
                 </li>
 
                 <div class="clearfix"></div>
@@ -75,64 +84,120 @@
             <div class="clearfix"></div>
         </div>
 
-        <!-- <div class="jzmore">加载更多...</div> -->
+        <!-- <div class="jzmore" @click='more'>加载更多...</div> -->
     </div>
 
     <script>
+        // 替换<br/>为空格
+        Vue.filter('filter', val => {
+            let reg = RegExp('<br/>', 'g')
+            return val.replace(reg, ' ');
+        });
         new Vue({
-            el:'#app',
-            data:{
-                info:[],
-                info_search:[],
-                num:0,
-                imgs:[],
-                message:'',
+            el: '#app',
+            data: {
+                info: [],
+                info_search: [],
+                num: 0,
+                imgs: [],
+                message: '',
+                initpage: 1,
+                pageSize: 6,
+                apiUrl: 'http://djhotel.sh-service.cn'
             },
-            methods:{
+            methods: {
                 getdata() {
-                    fetch('/Test/json1')
-                        .then(response => response.json())
-                        .then(json => {
-                            this.info = json;
-                        })
+                    this.$http.get(this.apiUrl + '/tools/oldtree_ajax.ashx', {
+                        params: {
+                            action: 'get_oldtree_list',
+                            pageIndex: '1',
+                            pageSize: '1000',
+                            otype: '1'
+                        }
+                    }).then(response => response.json()).then(function(resp) {
+                        this.info = resp.result.list;
+                    }).catch(resp => {
+                        console.log('请求失败：' + resp.status);
+                    });
                 },
                 getimg() {
-                    fetch('/Test/json1')
-                        .then(response => response.json())
-                        .then(json => {
-                            this.imgs = json;
-                        })
-                },
-                search_get: function (event) {
-                    axios.get('/Test/json1', {
+                    this.$http.get(this.apiUrl + '/tools/oldtree_ajax.ashx', {
                         params: {
+                            action: 'get_pic',
+                            number: '230'
+                        }
+                    }).then(response => response.json()).then(function(resp) {
+                        let obj = resp.result;
+                        obj.forEach(item => {
+                            this.imgs.push(this.apiUrl + item.img_url)
+                        });
+                    }).catch(resp => {
+                        console.log('请求失败：' + resp.status);
+                    });
+                },
+                getList() {
+                    this.$http.get(this.apiUrl + '/tools/oldtree_ajax.ashx', {
+                        params: {
+                            action: 'get_oldtree_list',
+                            pageIndex: this.initpage,
+                            pageSize: this.pageSize,
+                            otype: '2',
                             search: this.message
                         }
-                    })
-                    .then(function (response) {
-                        this.info_search = response;
-                    })
-                    .catch(function (error) {
+                    }).then(response => response.json()).then(function(response) {
+                        // console.log(response.result.list);
+                        this.info_search = response.result.list;
+                    }).catch(function(error) {
                         console.log(error);
                     });
                 },
-                autoPlay:function(){//num递增，num等于图片总数时回到第一张，其递增有下面的定时器实现
-                    const _self=this;
+                search_get: function(event) {
+                    this.getList()
+                },
+                autoPlay: function() { //num递增，num等于图片总数时回到第一张，其递增有下面的定时器实现
+                    const _self = this;
                     _self.num++;
-                    if(_self.num == this.imgs.length){
-                        _self.num=0;
+                    if (_self.num == this.imgs.length) {
+                        _self.num = 0;
                     }
                 },
-                play:function(){//每隔一秒执行autoPlay，使得num递增
-                    setInterval(this.autoPlay,3000);
+                play: function() { //每隔一秒执行autoPlay，使得num递增
+                    setInterval(this.autoPlay, 5000);
+                },
+                toContent(num) {
+                    console.log(num);
+                    location.href = 'treecon.html?id=' + num
+                },
+                more() {
+                    this.pageSize = this.pageSize + 6;
+                    this.getList();
+                },
+                scrollMore() {
+                    var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                    //变量windowHeight是可视区的高度
+                    var windowHeight = document.documentElement.clientHeight || document.body.clientHeight;
+                    //变量scrollHeight是滚动条的总高度
+                    var scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+                    //滚动条到底部的条件(距底部20px时触发加载)
+                    if (
+                        scrollTop + windowHeight >= scrollHeight - 20 &&
+                        !this.isAchiveBottom &&
+                        !this.noMore
+                    ) {
+                        this.pageSize = this.pageSize + 6;
+                        this.getList();
+                    }
                 }
             },
-            mounted(){
+            mounted() {
                 this.getdata();
                 this.getimg();
+                this.getList();
                 this.play();
+                window.addEventListener('scroll', this.scrollMore, true)
             }
         })
     </script>
 </body>
+
 </html>
